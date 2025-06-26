@@ -1,9 +1,20 @@
 import express from "express"
+import movieRouter from "./routes/movie.js"
 
 
 const app = express()
 const port = 3000
 
-app.listen(port, () => {
-    console.log("Welcome to movies API !")
+app.get("/", (req, res) => {
+    console.log("Welcome to books API")
 })
+
+app.use(express.json())
+app.use("/", movieRouter)
+
+
+
+app.listen(port, () => {
+    console.log(`Server in ascolto nella porta ${port}`)
+})
+
