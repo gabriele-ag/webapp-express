@@ -10,8 +10,7 @@ app.get("/", (req, res) => {
 })
 
 app.use(express.json())
-app.use("/", movieRouter)
-
+app.use("/movies", movieRouter)
 
 
 app.listen(port, () => {
