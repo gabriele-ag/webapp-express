@@ -1,5 +1,6 @@
 import express from "express"
 import movieRouter from "./routes/movie.js"
+import imagePath from "./middleware/imgPath.js"
 
 
 const app = express()
@@ -10,7 +11,8 @@ app.get("/", (req, res) => {
 })
 
 app.use(express.json())
-app.use("/movies", movieRouter)
+app.use(express.static("public"))
+app.use("/movies", imagePath, movieRouter)
 
 
 app.listen(port, () => {
