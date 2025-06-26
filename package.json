@@ -1,0 +1,16 @@
+{
+  "name": "webapp-express",
+  "version": "1.0.0",
+  "description": "Ciao ragazzi,\r esercizio di oggi: Setup Web App Express\r repo: webapp-express",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch app.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.1.0",
+    "mysql2": "^3.14.1"
+  }
+}
