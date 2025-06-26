@@ -1,6 +1,5 @@
 const imagePath = (req, res, next) => {
-    const path = "http://localhost:3000/img/cover"
-    req.imagePath = path
+    req.imagePath = "http://localhost:3000/images/covers"
     next()
 }
 
