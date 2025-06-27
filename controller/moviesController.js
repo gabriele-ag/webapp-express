@@ -9,6 +9,7 @@ const index = (req, res) => {
             console.log(err)
         } else {
             const movies = result.map((curMovie) => {
+
                 return {
                     ...curMovie,
                     image: `${req.imagePath}/${curMovie.image}`
@@ -26,7 +27,7 @@ const show = (req, res) => {
     const id = req.params.id
 
     const movieSql = " SELECT * FROM `movies` WHERE `id` = ? "
-    const reviewSql = " SELECT `reviews`.`name`, `reviews`. `text`, `reviews`.`vote` FROM `reviews` WHERE id = ? "
+    const reviewSql = " SELECT `reviews`.`name`, `reviews`.`text`, `reviews`.`vote` FROM `reviews` WHERE id = ? "
 
     connection.query(movieSql, [id], (err, movieResult) => {
         if(err) {
@@ -43,7 +44,7 @@ const show = (req, res) => {
                     data: {
                         ...movieResult[0],
                         reviews: reviewResult,
-                        image: `${req.imagePath}/${movieResult[0].title}.jpg`
+                        image: `${req.imagePath}/${movieResult[0].image}`
                         
                     } 
                 })
