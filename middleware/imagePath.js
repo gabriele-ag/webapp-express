@@ -1,5 +1,5 @@
 const imagePath = (req, res, next) => {
-    req.imagePath = "http://localhost:3000/images/covers"
+    req.imagePath = `${req.protocol}://${req.get("host")}/images/covers`
     next()
 }
 

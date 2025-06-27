@@ -1,7 +1,6 @@
 import connection from "../db.js"
 
 const index = (req, res) => {
-    console.log(req.imagePath)
 
     const sql = " SELECT * FROM `movies` "
 
@@ -12,7 +11,7 @@ const index = (req, res) => {
             const movies = result.map((curMovie) => {
                 return {
                     ...curMovie,
-                    image: `${req.imgPath}/${curMovie.image}`
+                    image: `${req.imagePath}/${curMovie.image}`
                 }
             })
         
@@ -26,24 +25,32 @@ const index = (req, res) => {
 const show = (req, res) => {
     const id = req.params.id
 
-    const sql = " SELECT * FROM `movies` WHERE `id` = ? "
+    const movieSql = " SELECT * FROM `movies` WHERE `id` = ? "
+    const reviewSql = " SELECT `reviews`.`name`, `reviews`. `text`, `reviews`.`vote` FROM `reviews` WHERE id = 2 "
 
-    connection.query(sql, [id], (err, result) => {
+    connection.query(movieSql, [id], (err, movieResult) => {
         if(err) {
             console.log("Error")
-        } else {
-            if (result.length == 0) {
+        } 
+            
+        if (movieResult.length == 0) {
                 res.status(404).json({
                     error: "Movie not found"
                 })
-            } else {
-                res.json({
-                    data: result[0]
+        } else {
+            connection.query(reviewSql, [id], (err, reviewResult) => {
+                res.status(200).json({
+                    data: {
+                        ...movieResult[0],
+                        reviews: reviewResult,
+                        image: `${req.imagePath}/${movieResult[0].title}.jpg`
+                        
+                    } 
                 })
-            }
+            })
         }
+        
     })
-
 }
 
 const controller = {

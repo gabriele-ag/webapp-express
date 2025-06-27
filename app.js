@@ -6,7 +6,7 @@ import notFound from "./middleware/notFound.js"
 
 
 const app = express()
-const port = 3000
+const port = process.env.SERVER_PORT
 
 app.get("/", (req, res) => {
     console.log("Welcome to books API")
