@@ -26,7 +26,7 @@ const show = (req, res) => {
     const id = req.params.id
 
     const movieSql = " SELECT * FROM `movies` WHERE `id` = ? "
-    const reviewSql = " SELECT `reviews`.`name`, `reviews`. `text`, `reviews`.`vote` FROM `reviews` WHERE id = 2 "
+    const reviewSql = " SELECT `reviews`.`name`, `reviews`. `text`, `reviews`.`vote` FROM `reviews` WHERE id = ? "
 
     connection.query(movieSql, [id], (err, movieResult) => {
         if(err) {
