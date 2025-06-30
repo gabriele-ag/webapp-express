@@ -1,8 +1,12 @@
 const errorHandler = (err, req, res, next) => {
-    return res.status(500).json({
+
+    const resData = {
         status: "fail",
         message: "Qualcosa è andato storto"
-    })
+    }
+    if(process.env.ENVIRONMENT === "development") {
+        resData.error = err.message
+    }
 }
 
 export default errorHandler
