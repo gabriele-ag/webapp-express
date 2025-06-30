@@ -14,7 +14,7 @@ const index = (req, res, next) => {
 
     if (search !== undefined) {
         sql += `
-        WHERE movies.title LIKE ?`
+        WHERE movies.title LIKE ?`;
         params.push(`%${search}%`);
     };
 
@@ -22,7 +22,9 @@ const index = (req, res, next) => {
         GROUP BY movies.id
     `;
 
-    connection.query(sql, (err, result) => {
+    console.log(params)
+
+    connection.query(sql, params, (err, result) => {
         if(err) {
             return next(new Error(err))
         } else {
@@ -42,7 +44,7 @@ const index = (req, res, next) => {
 }
 
 const show = (req, res) => {
-    const slug = req.params.slug
+    const slug = req.params.slug;
 
     const movieSql = ` 
     SELECT movies.*, ROUND(AVG(reviews.vote), 2) AS vote_avg 
