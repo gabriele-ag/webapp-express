@@ -42,16 +42,23 @@ const index = (req, res, next) => {
 }
 
 const show = (req, res) => {
-    const id = req.params.id
+    const slug = req.params.slug
 
     const movieSql = ` 
-    SELECT * 
+    SELECT movies.*, ROUND(AVG(reviews.vote), 2) AS vote_avg 
     FROM movies 
-    WHERE id = ? `
+    LEFT JOIN reviews 
+    ON movies.id = reviews.movie_id
+    WHERE movies.slug = ?
+    GROUP BY movies.id 
+    `;
 
-    const reviewSql = " SELECT `reviews`.`name`, `reviews`.`text`, `reviews`.`vote` FROM `movies`INNER JOIN `reviews` ON `movies`.`id` = `reviews`.`movie_id` WHERE `id` = ? "
+    const reviewSql = ` 
+    SELECT *
+    FROM reviews
+    WHERE reviews.movie_id = ? `
 
-    connection.query(movieSql, [id], (err, movieResult) => {
+    connection.query(movieSql, [slug], (err, movieResult) => {
         if(err) {
             return res.status(500).json({
             status: "fail",
@@ -64,12 +71,16 @@ const show = (req, res) => {
                     error: "Movie not found"
                 })
         } else {
-            connection.query(reviewSql, [id], (err, reviewResult) => {
+            const movieData = movieResult[0]
+            connection.query(reviewSql, [movieData.id], (err, reviewResult) => {
+                if(err) {
+                    return new Error(err)
+                }
                 res.status(200).json({
                     data: {
-                        ...movieResult[0],
+                        ...movieData,
                         reviews: reviewResult,
-                        image: `${req.imagePath}/${movieResult[0].image}`
+                        image: `${req.imagePath}/${movieData.image}`
                         
                     } 
                 })
