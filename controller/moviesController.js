@@ -1,3 +1,4 @@
+import slugify from "slugify"
 import connection from "../db.js"
 
 const index = (req, res, next) => {
@@ -22,7 +23,7 @@ const index = (req, res, next) => {
         GROUP BY movies.id
     `;
 
-    console.log(params)
+
 
     connection.query(sql, params, (err, result) => {
         if(err) {
@@ -43,7 +44,7 @@ const index = (req, res, next) => {
     })
 }
 
-const show = (req, res) => {
+const show = (req, res, next) => {
     const slug = req.params.slug;
 
     const movieSql = ` 
@@ -92,9 +93,90 @@ const show = (req, res) => {
     })
 }
 
-const controller = {
-    index,
-    show
+const storeReviews = (req, res, next) => {
+
+    // dalla request prendiamo l'id
+    const { id } = req.params;
+    console.log(id);
+
+    // verifichiamo che il libro con questo id esiste
+
+    const movieSql = `
+    SELECT *
+    FROM movies
+    WHERE id = ? `;
+
+    // se il libro esiste, preleviamo dal body della richiesta i dati
+    // salviamo la nuova review nel database
+    // inviamo la risposta con il codice 201
+    connection.query(movieSql, [id], (err, movieResult) => {
+        if(movieResult.length === 0) {
+            return res.status(404).json({
+                error: "Film non trovato"
+            })
+        }
+
+        const {name, vote, text} = req.body
+        const newReviewSql = `
+        INSERT INTO reviews (movie_id, name, vote, text)
+        VALUES (?, ?, ?, ?)
+        `
+
+        connection.query(newReviewSql, [id, name, vote, text], (err, results) => {
+            if(err) {
+                return next(new Error(err))
+            };
+
+            return res.status(201).json({
+                    message: "Reviews created",
+                    id: results.insertId,
+            });
+        });
+    });
+
+
+    console.log("Salva una reviews")
 }
 
-export default controller
+const store = (req, res, next) => {
+    const { title, director, genre, abstract, release_year} = req.body;
+
+    // prendiamo i dati del film dalla richiesta
+    const slug = slugify(title, {
+        lower: true,
+        strinct: true,
+    });
+
+    const sql = `
+    INSERT INTO movies (slug, title, director, genre, abstract, release_year)
+    VALUES (?, ?, ?, ?, ?)
+    `;
+
+    // scriviamo la prepared statement query
+    connection.query(sql, [slug, title, director, genre, abstract, release_year], (err, results) => {
+        if (err) {
+            return next(new Error(err))
+        };
+
+        return res.status(201).json({
+            id: results.insertId,
+            slug,
+        });
+    });
+
+    // eseguiamo la query
+    // se c'è errore lo gestiamo
+    // Invio la risposta con il codice 201 e id e slug
+
+
+
+}
+
+const controller = {
+    index,
+    show,
+    store,
+    storeReviews,
+};
+
+export default controller;
