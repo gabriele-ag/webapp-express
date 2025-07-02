@@ -1,5 +1,5 @@
 const errorHandler = (err, req, res, next) => {
-
+    console.log("EH", err)
     const resData = {
         status: "fail",
         message: "Qualcosa è andato storto"
@@ -7,6 +7,8 @@ const errorHandler = (err, req, res, next) => {
     if(process.env.ENVIRONMENT === "development") {
         resData.error = err.message
     }
+
+
 }
 
 export default errorHandler

@@ -1,5 +1,6 @@
 import slugify from "slugify"
 import connection from "../db.js"
+import fs from "fs";
 
 const index = (req, res, next) => {
 
@@ -93,6 +94,26 @@ const show = (req, res, next) => {
     })
 }
 
+ const validateRequest = (req) => {
+     const {title, director, abstract, genre} = req.body
+     console.log(req.body)
+
+     if (!title || !director) {
+         return false; // validazione che dipende dalla semantica della tua applicazione --> voglio che title e director siano obbligatori
+     };
+
+     //genere --> voglio che il genere abbia almeno di 3 caratteri (??)
+
+     if(genre && genre.length <= 3){
+        return false;
+     }
+
+    //  if (title.length <= 4 || director.length < 4 || abstract.length < 20 || genre.length < 4) {
+    //      return false;
+    //  }
+     return true;
+ };
+
 const storeReviews = (req, res, next) => {
 
     // dalla request prendiamo l'id
@@ -112,24 +133,24 @@ const storeReviews = (req, res, next) => {
     connection.query(movieSql, [id], (err, movieResult) => {
         if(movieResult.length === 0) {
             return res.status(404).json({
-                error: "Film non trovato"
-            })
-        }
+                error: "Film non trovato",
+            });
+        };
 
         const {name, vote, text} = req.body
         const newReviewSql = `
         INSERT INTO reviews (movie_id, name, vote, text)
         VALUES (?, ?, ?, ?)
-        `
+        `;
 
         connection.query(newReviewSql, [id, name, vote, text], (err, results) => {
             if(err) {
-                return next(new Error(err))
+                return next(new Error(err));
             };
 
             return res.status(201).json({
-                    message: "Reviews created",
-                    id: results.insertId,
+                message: "Reviews created",
+                id: results.insertId,
             });
         });
     });
@@ -139,21 +160,37 @@ const storeReviews = (req, res, next) => {
 }
 
 const store = (req, res, next) => {
-    const { title, director, genre, abstract, release_year} = req.body;
 
-    // prendiamo i dati del film dalla richiesta
+     if (!validateRequest(req)) {
+         return res.status(400).json({
+             message: "Dati errati",
+         });
+     };
+
+    // Prendo i dati del film dalla richiesta
+    const { title, director, genre, abstract, release_year} = req.body;
+    const image = req.file.filename
+    console.log(image)
+
+
+    // Creo lo slug del titolo
     const slug = slugify(title, {
         lower: true,
-        strinct: true,
+        strict: true,
     });
 
+
+    // Scriviamo la prepared statement query
     const sql = `
-    INSERT INTO movies (slug, title, director, genre, abstract, release_year)
-    VALUES (?, ?, ?, ?, ?)
+    INSERT INTO movies (slug, title, director, genre, abstract, release_year, image)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
     `;
 
-    // scriviamo la prepared statement query
-    connection.query(sql, [slug, title, director, genre, abstract, release_year], (err, results) => {
+    // Eseguiamo la query
+    // Se c'è errore lo gestiamo
+    // Invio la risposta con il codice 201 e id e slug
+
+    connection.query(sql, [slug, title, director, genre, abstract, release_year, image], (err, results) => {
         if (err) {
             return next(new Error(err))
         };
@@ -164,19 +201,53 @@ const store = (req, res, next) => {
         });
     });
 
-    // eseguiamo la query
-    // se c'è errore lo gestiamo
-    // Invio la risposta con il codice 201 e id e slug
-
 
 
 }
+
+const destroy = (req, res, next) => {
+    const slug = req.params.slug
+
+    const movieSql = `
+    SELECT *
+    FROM movies
+    WHERE slug = ?
+    `;
+
+    connection.query(movieSql, [slug], (err, result) => {
+        if(result.length === 0) {
+            return res.status(404).json({
+                error: "Film non trovato",
+            });
+        };
+
+        const filePath = `public/images/covers/${result[0].image}`;
+        fs.unlinkSync(filePath);
+    
+        const movieId = result[0].id
+        const deleteSql = `
+        DELETE
+        FROM movies
+        WHERE id = ?`
+
+        connection.query(deleteSql, [movieId], (err, result) => {
+            if (err) {
+                return next(new Error(err))
+            }
+
+            res.sendStatus(204);
+        })
+
+    });
+
+};
 
 const controller = {
     index,
     show,
     store,
     storeReviews,
+    destroy,
 };
 
 export default controller;

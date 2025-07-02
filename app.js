@@ -23,8 +23,9 @@ app.use(express.static("public"))
 
 app.use("/movies", imagePath, movieRouter)
 
-app.use(notFound)
 app.use(errorHandler);
+app.use(notFound)
+
 app.listen(port, () => {
     console.log(`Server in ascolto nella porta ${port}`)
 })
